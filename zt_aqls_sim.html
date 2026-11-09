@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zero-Trust + AQ-LS Network Simulator</title>
+<style>
+:root{--bg:#eef1f6;--card:#fff;--tx:#161b26;--mu:#667085;--bd:#dde2ec;--rip:#e5533d;--ospf:#d9902b;--aq:#0f9d78;--ok:#0f9d78;--no:#d93c4a;--acc:#3b6cff;--chip:#f3f5fa;--glow:0;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b0f1a;--card:#121827;--tx:#e8edf8;--mu:#8793ab;--bd:#222c42;--rip:#ff6b55;--ospf:#ffb347;--aq:#2de2b0;--ok:#2de2b0;--no:#ff5c6c;--acc:#6b8dff;--chip:#1a2236;--glow:1}}
+:root[data-theme="dark"]{--bg:#0b0f1a;--card:#121827;--tx:#e8edf8;--mu:#8793ab;--bd:#222c42;--rip:#ff6b55;--ospf:#ffb347;--aq:#2de2b0;--ok:#2de2b0;--no:#ff5c6c;--acc:#6b8dff;--chip:#1a2236;--glow:1}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:1320px;margin:auto;padding:14px 16px 30px}
+h1{font-size:20px;margin:0 0 2px}h1+p{margin:0 0 10px;color:var(--mu);font-size:12.5px}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;align-items:center}
+button,select{font:inherit;color:var(--tx);background:var(--card);border:1px solid var(--bd);border-radius:999px;padding:6px 13px;cursor:pointer}
+button:hover{border-color:var(--acc)}button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.tabs button{padding:8px 20px;font-weight:700;border-width:2px}.tabs button.on{background:var(--c);border-color:var(--c);color:#fff}.tabs button:not(.on){border-color:color-mix(in srgb,var(--c) 45%,var(--bd))}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:9px 14px}
+.bar input{flex:1;min-width:140px;accent-color:var(--acc)}
+.cap{margin:10px 0;padding:12px 16px;border-radius:12px;background:linear-gradient(100deg,color-mix(in srgb,var(--acc) 20%,var(--card)),var(--card));border:1px solid var(--bd);font-size:15px;min-height:50px}.cap b{color:var(--acc)}.cap small{display:block;color:var(--mu);font-size:12.5px;margin-top:2px}
+.main{display:grid;grid-template-columns:minmax(0,1.9fr) minmax(280px,1fr);gap:12px}@media(max-width:900px){.main{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:12px 14px;min-width:0}.card+.card{margin-top:12px}
+.card h2{font-size:11.5px;margin:0 0 8px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:.08em}
+.ph{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}.pn{font-weight:700;font-size:16px}.pn i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:7px;background:var(--c);box-shadow:0 0 calc(10px*var(--glow)) var(--c)}
+.big{font-size:30px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}.big small{font-size:12px;color:var(--mu);font-weight:500}
+.bdg{display:inline-block;margin-left:10px;padding:2px 10px;border-radius:999px;font-size:11.5px;font-weight:600;vertical-align:2px}
+.bdg.g{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}.bdg.r{background:color-mix(in srgb,var(--no) 18%,transparent);color:var(--no)}.bdg.n{background:var(--chip);color:var(--mu)}
+svg{width:100%;height:auto;display:block}.lb{font-size:10px;fill:var(--mu);paint-order:stroke;stroke:var(--card);stroke-width:3.5px}.rt{font-size:11px;font-weight:700;fill:var(--tx)}.bt{font-size:10.5px;font-weight:600;fill:var(--mu)}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:8px}.kv div{background:var(--chip);border-radius:10px;padding:8px 10px}.kv span{font-size:11px;color:var(--mu);text-transform:uppercase;letter-spacing:.06em}.kv b{display:block;font-size:19px}
+input[type=number]{width:62px;font:inherit;color:var(--tx);background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:4px 6px}input[type=range].cp{width:130px;accent-color:var(--acc)}.cu .row{gap:10px}
+canvas{width:100%;height:auto;display:block}.ex{font-size:13px;color:var(--mu)}.ex b{color:var(--tx)}
+#log{max-height:200px;overflow:auto;font:12px/1.65 ui-monospace,Menlo,monospace}#log div{border-bottom:1px dotted var(--bd)}.mu{color:var(--mu)}
+.mx{border-collapse:separate;border-spacing:2px;font-size:10px}.mx th{font-weight:600;color:var(--mu);padding:0 4px;text-align:right;white-space:nowrap}.mx thead th{text-align:center}
+.mx td{width:34px;height:26px;border-radius:5px;cursor:pointer;text-align:center;font-size:12px}.mx td.a{background:color-mix(in srgb,var(--ok) 28%,transparent);color:var(--ok)}.mx td.d{background:color-mix(in srgb,var(--no) 24%,transparent);color:var(--no)}.mx td.s{outline:2px solid var(--tx)}
+.acl{display:grid;grid-template-columns:auto 1fr;gap:18px}@media(max-width:820px){.acl{grid-template-columns:1fr}}.tw{overflow-x:auto}
+.v{padding:10px 13px;border-radius:10px;font-weight:700;font-size:15px}.v.ok{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}.v.no{background:color-mix(in srgb,var(--no) 16%,transparent);color:var(--no)}.v small{display:block;font-weight:500;font-size:12px}
+table.t{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}.t th,.t td{text-align:left;padding:6px;border-bottom:1px solid var(--bd)}.t th{color:var(--mu);font-weight:500}
+</style></head><body><div class="wrap">
+<h1>Zero-Trust Multi-Site Network + AQ-LS</h1><p>Layer 1: VLAN default-deny ACL · Layer 2: routing protocol of your choice, same traffic and events</p>
+<div class="row" id="pills"></div>
+<div class="row tabs" id="tabs"></div>
+<div class="card cu" id="cu" style="display:none;margin:0 0 10px"><h2>Custom case — choose your own flow and fault</h2>
+<div class="row">From <select id="cs"></select> To <select id="cd"></select><span class="mu" id="cv"></span></div>
+<div class="row"><label><input type="checkbox" id="cc" checked> Inject fault</label><select id="cm"><option value="u">congestion</option><option value="d">link failure</option></select> on <select id="cl"></select><span id="cpw">load <input type="range" class="cp" id="cp" min="50" max="95" value="92"> <b id="cpv">92%</b></span> from t=<input type="number" id="c1" min="1" max="48" value="10"> until t=<input type="number" id="c2" min="2" max="50" value="30"></div></div>
+<div class="bar"><button id="play">▶ Play</button><button id="step">Step</button><button id="rst">Reset</button><input type="range" id="sk" min="0" max="50" value="0"><span class="mu" id="tk"></span><select id="spd"><option value="1">1×</option><option value="2" selected>2×</option><option value="4">4×</option></select></div>
+<div class="cap" id="cap"></div>
+<div class="main"><div>
+ <div class="card" id="tcard"><div class="ph"><div class="pn" id="pn"></div><div class="big" id="big"></div></div><svg id="topo" viewBox="0 0 900 520"></svg><div class="ex">Link colour = load. Dots = packets of the monitored flow, system → switch → routers → switch → system.</div></div>
+ <div class="card" id="cmp" style="display:none"><h2>Side-by-side result (this scenario)</h2><div class="tw"><table class="t" id="ct"></table></div></div>
+ <div class="card"><h2 id="cht">Delay of monitored flow (ms)</h2><canvas id="ch" width="900" height="290"></canvas></div></div>
+<div><div class="card"><h2>Algorithm</h2><div class="ex" id="ex"></div></div>
+ <div class="card"><h2>Live stats</h2><div class="kv" id="kv"></div></div>
+ <div class="card"><h2>Control-plane log</h2><div id="log"></div></div></div></div>
+<div class="card" style="margin-top:12px"><h2>Layer 1 — zero-trust policy (click a cell, or pick systems)</h2><div class="row"><select id="hs"></select>→<select id="hd"></select><button id="send">Send packet</button></div><div class="acl"><div id="mx" class="tw"></div><div id="res"></div></div></div>
+</div>
+<script>
+//ENGINE
+const SITES=["HQ","BRANCH","DR","CLOUD"],K=(a,b)=>[a,b].sort().join("-"),TICKS=50;
+const LK=[["HQ","BRANCH",100,4,.001],["HQ","DR",200,6,.001],["HQ","CLOUD",50,2,.001],["BRANCH","DR",100,5,.001],["BRANCH","CLOUD",50,3,.001],["DR","CLOUD",100,4,.001]];
+const SV={HQ:{10:"FINANCE",20:"HR",30:"IT_ADMIN",40:"GUEST",99:"SERVERS"},BRANCH:{50:"BRANCH_STAFF",40:"GUEST"},DR:{99:"SERVERS"},CLOUD:{0:"GATEWAY"}};
+const HOSTS=[["FIN-PC-01","HQ",10,"🖥"],["FIN-PC-02","HQ",10,"🖥"],["HR-PC-01","HQ",20,"🖥"],["IT-ADM-01","HQ",30,"💻"],["GUEST-AP","HQ",40,"📶"],["SRV-DB01","HQ",99,"🗄"],["SRV-FILE01","HQ",99,"🗄"],["BR-PC-01","BRANCH",50,"🖥"],["BR-PC-02","BRANCH",50,"🖥"],["BR-GUEST","BRANCH",40,"📶"],["DR-SRV01","DR",99,"🗄"],["DR-BACKUP","DR",99,"💾"],["CLOUD-GW","CLOUD",0,"☁️"]].map(([n,s,v,ic])=>({n,s,v,ic,vn:SV[s][v]}));
+const M={"FINANCE>HR":0,"HR>FINANCE":0,"GUEST>FINANCE":0,"GUEST>HR":0,"GUEST>IT_ADMIN":0,"GUEST>BRANCH_STAFF":0,"GUEST>SERVERS":0,"GUEST>GATEWAY":1,"IT_ADMIN>FINANCE":1,"IT_ADMIN>HR":1,"IT_ADMIN>BRANCH_STAFF":1,"IT_ADMIN>SERVERS":1,"IT_ADMIN>GATEWAY":1,"FINANCE>SERVERS":1,"HR>SERVERS":1,"BRANCH_STAFF>SERVERS":1,"SERVERS>SERVERS":1,"BRANCH_STAFF>IT_ADMIN":1};
+const acl=(a,b)=>{if(a.s==b.s&&a.vn==b.vn)return[true,"same VLAN, same site"];const k=a.vn+">"+b.vn;return k in M?[!!M[k],(M[k]?"explicit allow ":"explicit deny ")+k]:[false,"no rule "+k+" → default-deny"]};
+const klass=(a,b)=>b.vn=="GATEWAY"?"fixed":a.vn=="SERVERS"||b.vn=="SERVERS"?"bulk":a.vn=="IT_ADMIN"||b.vn=="IT_ADMIN"?"latency_sensitive":"best_effort";
+const W={latency_sensitive:[.2,5,10],bulk:[5,.5,2],best_effort:[1,1,1]},UT=.2,HY=.1,HD=3,RT=4,RM=.08;
+const mkL=()=>{const o={};LK.forEach(([a,b,bw,l,lo])=>o[K(a,b)]={a,b,bw,lat:l,loss:lo,u:.05,down:0,ad:0,sbw:bw,slat:l,sloss:lo,abw:bw,alat:l,aloss:lo,last:-999,lr:0});return o};
+const meas=k=>{const u=Math.min(k.u,.95);return[k.bw*(1-u),k.lat/(1-u),k.loss+u*.05]};
+const smooth=k=>{const[b,l,s]=meas(k);k.sbw=.7*k.sbw+.3*b;k.slat=.7*k.slat+.3*l;k.sloss=.7*k.sloss+.3*s};
+function paths(L,s,d){const r=[];(function go(p){const c=p[p.length-1];if(c==d){r.push(p);return}SITES.forEach(n=>{const k=L[K(c,n)];if(!p.includes(n)&&k&&!k.down)go([...p,n])})})([s]);return r}
+function route(Q,s,d,cls,commit){
+ const kf=Q.n=="rip"?()=>1:Q.n=="ospf"?k=>Math.max(1e4/k.bw,1):k=>{const w=W[cls];return w[0]/Math.max(k.abw,1e-3)+w[1]*k.alat+w[2]*k.aloss};
+ const cost=p=>p.slice(1).reduce((x,v,i)=>x+kf(Q.L[K(p[i],v)]),0),all=paths(Q.L,s,d);if(!all.length)return{p:null,f:0};
+ all.sort((x,y)=>cost(x)-cost(y)||x.length-y.length);let c=all[0],f=0;if(Q.n!="aqls")return{p:c,f:0};
+ const id=s+d+cls,cu=Q.cur[id];
+ if(!cu){if(commit)Q.cur[id]=c}else if(cu.join()!=c.join()){
+  const br=cu.slice(1).some((v,i)=>Q.L[K(cu[i],v)].down),imp=(cost(cu)-cost(c))/Math.max(cost(cu),1e-9);
+  if(br||imp>HY){if(commit)Q.cur[id]=c;f=1}else c=cu}
+ return{p:c,f}}
+const dly=(Q,p)=>p?p.slice(1).reduce((x,v,i)=>x+Q.L[K(p[i],v)].slat,0):null;
+function tickAQ(L,t,lg){let m=0;Object.values(L).forEach(k=>{smooth(k);
+ if(k.down!=k.ad){k.ad=k.down;if(!k.down){const[b,l,s]=meas(k);k.sbw=k.abw=b;k.slat=k.alat=l;k.sloss=k.aloss=s;k.last=k.lr=t}m++;lg(`${k.a}–${k.b} ${k.down?"failure":"recovery"} flooded`);return}
+ if(k.down)return;const ch=Math.abs(k.slat-k.alat)/Math.max(k.alat,1e-6),fast=ch>UT&&t-k.last>HD,slow=ch>RM&&t-k.lr>RT;
+ if(fast||slow){if(fast)k.last=t;k.lr=t;k.abw=k.sbw;k.alat=k.slat;k.aloss=k.sloss;m++;lg(`${k.a}–${k.b} ${fast?"update":"slow refresh"} → ${k.alat.toFixed(1)} ms`)}});return m}
+function stepP(Q,t,S,lg){
+ S.ev.filter(e=>e.t==t).forEach(e=>{const k=Q.L[K(e.a,e.b)];if(e.k=="u")k.u=e.v;if(e.k=="d")k.down=1;if(e.k=="r"){k.down=0;k.u=.05}
+  lg(`<b>event</b> ${e.a}–${e.b} ${e.k=="u"?"load → "+Math.round(e.v*100)+"%":e.k=="d"?"link DOWN":"link restored"}`)});
+ let m=0;if(Q.n=="aqls")m=tickAQ(Q.L,t,lg);else Object.values(Q.L).forEach(smooth);
+ const r=route(Q,S.s,S.d,S.cls,true),d=dly(Q,r.p),key=r.p&&r.p.join(">");
+ if(Q.last&&key!=Q.last)lg(`<b>path</b> ${Q.last.replace(/>/g,"→")} ⇒ ${key?key.replace(/>/g,"→"):"no path"}`);
+ Q.last=key;Q.path=r.p;Q.msgs+=m;Q.flaps+=r.f;Q.rec.push({t,d})}
+//END
+const $=i=>document.getElementById(i),H=n=>HOSTS.find(h=>h.n==n);
+const PN={rip:"RIP",ospf:"OSPF",aqls:"AQ-LS",cmp:"Compare"},CV={rip:"--rip",ospf:"--ospf",aqls:"--aq",cmp:"--acc"};
+const EX={rip:"<b>Hop count only.</b> Every link costs 1. Ignores bandwidth, delay and load. Changes path only when a link dies.",ospf:"<b>Link-state, static cost</b> = 10000 ÷ configured bandwidth. Knows the topology, not the load. Fast on failure, blind to congestion.",aqls:"<b>Adaptive QoS link-state.</b> Cost per traffic class = w<sub>bw</sub>/bw + w<sub>lat</sub>·latency + w<sub>loss</sub>·loss. EWMA smoothing, flood only on &gt;20% change, 3-tick hold-down, switch only if &gt;10% better, slow refresh so values never go stale."};
+const SC=[
+{n:"Congestion · bulk",f:["SRV-DB01","DR-SRV01"],ev:[{t:10,a:"HQ",b:"DR",k:"u",v:.92},{t:30,a:"HQ",b:"DR",k:"u",v:.05}],c:[[0,"Nightly DB replication HQ → DR. Everyone uses the direct 200 Mbps link.","Healthy network, same path, same delay."],[10,"<b>HQ–DR hits 92% load.</b> Latency on that link jumps ~12×.","Hop count and static cost cannot see load. Watch who reacts."],[30,"Congestion clears.","Detour and direct are now equal, so AQ-LS stays put. No pointless flap."]]},
+{n:"Link failure",f:["SRV-DB01","DR-SRV01"],ev:[{t:10,a:"HQ",b:"DR",k:"d"},{t:30,a:"HQ",b:"DR",k:"r"}],c:[[0,"Same replication flow, healthy network.",""],[10,"<b>HQ–DR link goes DOWN.</b>","Fair fight: all three detect it. Compare which backup each picks: RIP/OSPF by hops, AQ-LS by live quality."],[30,"Link restored.","Static protocols snap back to their favourite. AQ-LS stays unless the old path is clearly better."]]},
+{n:"Cascading congestion",f:["SRV-DB01","DR-SRV01"],ev:[{t:8,a:"HQ",b:"DR",k:"u",v:.92},{t:18,a:"HQ",b:"CLOUD",k:"u",v:.9},{t:30,a:"HQ",b:"DR",k:"u",v:.05},{t:34,a:"HQ",b:"CLOUD",k:"u",v:.05}],c:[[0,"Bulk flow HQ → DR, healthy.",""],[8,"<b>HQ–DR congests.</b>","AQ-LS detours via CLOUD. RIP/OSPF stay put."],[18,"<b>The backup HQ–CLOUD congests too.</b>","A fixed backup plan fails here. AQ-LS re-evaluates live costs and picks HQ–BRANCH–DR."],[30,"HQ–DR clears; HQ–CLOUD still clogged.","AQ-LS returns only once the direct link is clearly better."]]},
+{n:"Latency-sensitive IT",f:["IT-ADM-01","BR-PC-01"],ev:[{t:10,a:"HQ",b:"BRANCH",k:"u",v:.7},{t:30,a:"HQ",b:"BRANCH",k:"u",v:.05}],c:[[0,"IT admin session to a branch PC. Class <b>latency_sensitive</b>: delay ×5, loss ×10.",""],[10,"<b>HQ–BRANCH reaches 70% load.</b>","Moderate load, but this class hates delay. AQ-LS leaves for HQ–CLOUD–BRANCH."],[30,"Load drops.","Detour is a bit slower than the recovered direct link. AQ-LS waits for refreshed metrics, then switches back (>10% better)."]]},
+{n:"Custom (your own)",custom:1}];
+const PO={HQ:[360,210],BRANCH:[540,210],DR:[360,330],CLOUD:[540,330]},BOX={HQ:[8,8,324,136,"HQ · head office","b"],BRANCH:[568,8,324,100,"BRANCH · branch office","b"],DR:[8,400,324,100,"DR · disaster recovery","t"],CLOUD:[568,400,324,100,"CLOUD · gateway","t"]};
+const VC={FINANCE:"#4c8dff",HR:"#b06cff",IT_ADMIN:"#19c3a0",GUEST:"#8a94a6",SERVERS:"#f0a93b",BRANCH_STAFF:"#4c8dff",GATEWAY:"#8a94a6"};
+const SW=s=>{const b=BOX[s];return[b[0]+b[2]/2,b[5]=="b"?b[1]+b[3]+10:b[1]-10]};
+const HC={};{const c={};HOSTS.forEach(o=>{const i=c[o.s]=c[o.s]||0;c[o.s]++;const b=BOX[o.s];HC[o.n]=[b[0]+9+(i%4)*78,b[1]+28+Math.floor(i/4)*52]})}
+const hc=n=>[HC[n][0]+36,HC[n][1]+23];
+function customSC(){const a=H($("cs").value),b=H($("cd").value),on=$("cc").checked,k=$("cm").value,[la,lb]=$("cl").value.split("-"),t1=+$("c1").value,t2=+$("c2").value,v=+$("cp").value/100,ev=[],c=[[0,`Custom flow ${a.n} → ${b.n}.`,on?"A fault will be injected, see the controls.":"No fault injected: steady state. Every protocol behaves the same, which is the correct result."]];
+ if(on){ev.push(k=="d"?{t:t1,a:la,b:lb,k:"d"}:{t:t1,a:la,b:lb,k:"u",v});c.push([t1,k=="d"?`<b>${la}–${lb} goes DOWN.</b>`:`<b>${la}–${lb} congested to ${Math.round(v*100)}%.</b>`,"Check which protocols notice."]);
+  if(t2>t1&&t2<TICKS){ev.push(k=="d"?{t:t2,a:la,b:lb,k:"r"}:{t:t2,a:la,b:lb,k:"u",v:.05});c.push([t2,"Fault cleared.",""])}}
+ return{n:"Custom",f:[a.n,b.n],ev,c}}
+let S,sc,T,P,view="aqls",cur=0,timer=null,logs,probe=null;
+function reset(n){clearInterval(timer);timer=null;$("play").textContent="▶ Play";sc=SC[cur].custom?customSC():SC[cur];const a=H(sc.f[0]),b=H(sc.f[1]),ok=acl(a,b)[0],kl=klass(a,b);S={ev:sc.ev,s:a.s,d:b.s,cls:kl=="fixed"?"best_effort":kl,label:kl,a,b,ok,skip:!ok||a.s==b.s};T=0;logs={rip:[],ospf:[],aqls:[]};
+ P={};["rip","ospf","aqls"].forEach(k=>P[k]={n:k,L:mkL(),cur:{},rec:[],msgs:0,flaps:0,last:null,path:null});for(let i=0;i<(n||0);i++)run();paint()}
+function run(){if(S.skip){T++;return}Object.values(P).forEach(Q=>stepP(Q,T,S,x=>logs[Q.n].push([T,x])));T++}
+function step(){if(T>=TICKS){stop();return}run();paint()}
+function stop(){clearInterval(timer);timer=null;$("play").textContent="▶ Play"}
+function play(){if(timer){stop();return}if(T>=TICKS)reset();$("play").textContent="❚❚ Pause";timer=setInterval(step,550/$("spd").value)}
+function build(){
+ $("pills").innerHTML=SC.map((s,i)=>`<button data-i="${i}">${i+1} · ${s.n}</button>`).join("");
+ document.querySelectorAll("#pills button").forEach(b=>b.onclick=()=>{cur=+b.dataset.i;reset()});
+ $("tabs").innerHTML=Object.keys(PN).map(k=>`<button data-v="${k}" style="--c:var(${CV[k]})">${PN[k]}</button>`).join("");
+ document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{view=b.dataset.v;paint()});
+ let h=`<defs><filter id="gl" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="4"/></filter></defs>`;
+ Object.entries(BOX).forEach(([s,b])=>{h+=`<rect x="${b[0]}" y="${b[1]}" width="${b[2]}" height="${b[3]}" rx="12" fill="none" stroke="var(--bd)" stroke-dasharray="5 4"/><text class="bt" x="${b[0]+10}" y="${b[1]+17}">${b[4]}</text>`;
+  const[x,y]=SW(s);h+=`<line x1="${x}" y1="${y}" x2="${PO[s][0]}" y2="${PO[s][1]}" stroke="var(--mu)" stroke-width="1.5"/><rect x="${x-20}" y="${y-8}" width="40" height="16" rx="4" fill="var(--chip)" stroke="var(--mu)"/><text class="lb" style="stroke:none" x="${x}" y="${y+3.5}" text-anchor="middle">switch</text>`});
+ LK.forEach(([a,b,bw])=>h+=`<line id="l-${K(a,b)}" x1="${PO[a][0]}" y1="${PO[a][1]}" x2="${PO[b][0]}" y2="${PO[b][1]}" stroke-width="${2+bw/30}" stroke-linecap="round"/>`);
+ h+=`<polyline id="hg" fill="none" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity=".35" filter="url(#gl)"/><polyline id="pl" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 0"/>`;
+ LK.forEach(([a,b])=>{const t=(a=="HQ"&&b=="CLOUD")||(a=="BRANCH"&&b=="DR")?.3:.5;h+=`<text class="lb" id="t-${K(a,b)}" x="${PO[a][0]+(PO[b][0]-PO[a][0])*t}" y="${PO[a][1]+(PO[b][1]-PO[a][1])*t-6}" text-anchor="middle"></text>`});
+ HOSTS.forEach(o=>{const[x,y]=HC[o.n];h+=`<g id="i-${o.n}"><rect x="${x}" y="${y}" width="72" height="46" rx="8" fill="var(--chip)" stroke="${VC[o.vn]}" stroke-width="1.6"/><text x="${x+36}" y="${y+19}" text-anchor="middle" font-size="16">${o.ic}</text><text x="${x+36}" y="${y+32}" text-anchor="middle" font-size="8.5" font-weight="600" fill="var(--tx)">${o.n}</text><text x="${x+36}" y="${y+42}" text-anchor="middle" font-size="7.5" fill="${VC[o.vn]}">${o.vn.replace("_"," ")} · ${o.vn=="GATEWAY"?"gw":"V"+o.v}</text></g>`});
+ Object.keys(PO).forEach(s=>h+=`<circle cx="${PO[s][0]}" cy="${PO[s][1]}" r="23" fill="var(--card)" stroke="var(--tx)" stroke-width="2"/><text class="rt" x="${PO[s][0]}" y="${PO[s][1]+4}" text-anchor="middle">${s=="BRANCH"?"BR":s=="CLOUD"?"CLD":s}</text>`);
+ h+=`<g id="pk"></g><text id="pr" font-size="12" font-weight="700" fill="var(--no)" text-anchor="middle"></text>`;$("topo").innerHTML=h;
+ const vl=[...new Set(HOSTS.map(o=>o.vn))];
+ $("mx").innerHTML=`<table class="mx"><thead><tr><th></th>${vl.map(v=>`<th>${v.replace("_"," ")}</th>`).join("")}</tr></thead>${vl.map(a=>`<tr><th>${a.replace("_"," ")}</th>${vl.map(b=>{const x=HOSTS.find(o=>o.vn==a),y=HOSTS.find(o=>o.vn==b),ok=acl(x,y)[0];return`<td class="${ok?"a":"d"}" data-a="${a}" data-b="${b}">${ok?"✓":"✕"}</td>`}).join("")}</tr>`).join("")}</table><div class="mu" style="font-size:11px;margin-top:6px">rows = source VLAN · columns = destination VLAN</div>`;
+ document.querySelectorAll(".mx td").forEach(t=>t.onclick=()=>{$("hs").value=HOSTS.find(o=>o.vn==t.dataset.a).n;$("hd").value=HOSTS.find(o=>o.vn==t.dataset.b&&o.n!=$("hs").value).n;test()})}
+function paint(){
+ document.querySelectorAll("#pills button").forEach((b,i)=>b.classList.toggle("on",i==cur));document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.v==view));
+ $("sk").value=T;$("tk").textContent=`t = ${T} / ${TICKS}`;
+ const cp=[...sc.c].reverse().find(x=>x[0]<=T);$("cap").innerHTML=(cp?cp[1]+(cp[2]?`<small>${cp[2]}</small>`:""):"")+`<small>Flow: ${S.a.n} → ${S.b.n} · class ${S.label}</small>`+(S.skip?(S.ok?`<small><b>Same site</b>: traffic stays local, nothing to route.</small>`:`<small style="color:var(--no)"><b>⛔ BLOCKED by the zero-trust ACL.</b> The flow never reaches routing, so no protocol is involved. Pick another destination.</small>`):"");$("cu").style.display=SC[cur].custom?"":"none";if(SC[cur].custom)$("cv").textContent=S.ok?"✓ allowed by ACL · class "+S.label:"✕ blocked by ACL";$("cpw").style.display=$("cm").value=="u"?"":"none";$("cpv").textContent=$("cp").value+"%";
+ const cmp=view=="cmp",Q=P[cmp?"aqls":view],hot=Object.values(Q.L).some(k=>k.u>.5&&!k.down);
+ $("tcard").style.display=cmp?"none":"";$("cmp").style.display=cmp?"":"none";
+ $("ex").innerHTML=cmp?"Same events, same flow. Pick a tab above to watch one algorithm on the topology.":EX[view]+(view=="aqls"?`<br><br>Class <b>${S.cls}</b> weights (bw, lat, loss): <b>${(W[S.cls]||W.best_effort).join(" / ")}</b>`:"");
+ const ds=n=>P[n].rec.map(r=>r.d).filter(x=>x!=null),avg=n=>ds(n).length?ds(n).reduce((x,y)=>x+y,0)/ds(n).length:0,mx=n=>ds(n).length?Math.max(...ds(n)):0;
+ if(!cmp){
+  LK.forEach(([a,b])=>{const k=Q.L[K(a,b)],l=$("l-"+K(a,b)),x=Math.min(k.u/.9,1);l.setAttribute("stroke",k.down?"var(--bd)":`hsl(${Math.round(150-150*x)} 70% 48%)`);l.setAttribute("stroke-dasharray",k.down?"4 7":"none");$("t-"+K(a,b)).textContent=k.down?"DOWN":`${k.bw}M · ${k.slat.toFixed(1)}ms · ${Math.round(k.u*100)}%`});
+  const col=`var(${CV[view]})`;$("hg").setAttribute("stroke",col);$("pl").setAttribute("stroke",col);
+  const pts=Q.path?[hc(S.a.n),SW(S.s),...Q.path.map(s=>PO[s]),SW(S.d),hc(S.b.n)]:null;Q.pts=pts;
+  $("hg").setAttribute("points",pts?pts.join(" "):"");$("pl").setAttribute("points",pts?pts.join(" "):"");
+  HOSTS.forEach(o=>$("i-"+o.n).setAttribute("opacity",o.n==S.a.n||o.n==S.b.n?1:.45));
+  const last=Q.rec.length?Q.rec[Q.rec.length-1].d:null,base=Q.rec.length?Q.rec[0].d:0,used=Q.path&&Q.path.slice(1).some((v,i)=>{const k=Q.L[K(Q.path[i],v)];return k.u>.5&&!k.down});
+  $("pn").innerHTML=`<i style="--c:${col}"></i>${PN[view]}`+(S.skip?`<span class="bdg r">${S.ok?"● LOCAL":"⛔ BLOCKED"}</span>`:!T?`<span class="bdg n">● READY</span>`:used?`<span class="bdg r">⚠ ON CONGESTED LINK</span>`:hot?`<span class="bdg g">✓ ROUTED AROUND CONGESTION</span>`:Q.path?`<span class="bdg n">● NOMINAL</span>`:`<span class="bdg r">✕ NO PATH</span>`);
+  $("big").innerHTML=last==null?"—":`<span style="color:${last>base*1.8?"var(--no)":"var(--tx)"}">${last.toFixed(1)}<small> ms</small></span>`;
+  $("kv").innerHTML=`<div><span>Path now</span><b style="font-size:15px">${Q.path?Q.path.join("→"):"—"}</b></div><div><span>Avg delay</span><b>${avg(view).toFixed(1)} ms</b></div><div><span>Peak delay</span><b>${mx(view).toFixed(1)} ms</b></div><div><span>Control msgs</span><b>${Q.msgs}</b></div><div><span>Path changes</span><b>${Q.flaps}</b></div><div><span>Hops</span><b>${Q.path?Q.path.length-1:"—"}</b></div>`;
+  $("log").innerHTML=[...logs[view]].map(([t,x])=>`<div><span class="mu">t${String(t).padStart(2,"0")}</span> ${x}</div>`).join("")||`<span class="mu">${view=="aqls"?"nothing flooded yet":"no control messages modelled for this protocol"}</span>`;$("log").scrollTop=1e5}
+ else{$("pn").innerHTML="";$("kv").innerHTML=`<div><span>AQ-LS avg saved vs OSPF</span><b style="color:var(--aq)">${T&&avg("ospf")?Math.round((1-avg("aqls")/avg("ospf"))*100):0}%</b></div><div><span>Peak (R / O / AQ)</span><b style="font-size:15px">${mx("rip").toFixed(0)} / ${mx("ospf").toFixed(0)} / ${mx("aqls").toFixed(0)}</b></div>`;
+  $("log").innerHTML=logs.aqls.map(([t,x])=>`<div><span class="mu">t${String(t).padStart(2,"0")}</span> ${x}</div>`).join("");
+  $("ct").innerHTML=`<tr><th>Protocol</th><th>Path now</th><th>Avg ms</th><th>Peak ms</th><th>Msgs</th><th>Path chg</th></tr>`+["rip","ospf","aqls"].map(n=>`<tr><td style="color:var(${CV[n]});font-weight:700">${PN[n]}</td><td>${P[n].path?P[n].path.join("→"):"—"}</td><td>${avg(n).toFixed(1)}</td><td>${mx(n).toFixed(1)}</td><td>${P[n].msgs}</td><td>${P[n].flaps}</td></tr>`).join("")}
+ $("cht").textContent=cmp?"Delay of monitored flow — all algorithms (ms)":`Delay of monitored flow — ${PN[view]} (ms)`;chart();if($("res").dataset.on)test(true)}
+function chart(){const c=$("ch"),g=c.getContext("2d"),w=c.width,h=c.height,st=getComputedStyle(document.documentElement),px=40,py=18,pb=26,cl=v=>st.getPropertyValue(v),ns=view=="cmp"?["rip","ospf","aqls"]:[view];
+ g.clearRect(0,0,w,h);g.font="13px system-ui";let mx=10;ns.forEach(n=>P[n].rec.forEach(r=>{if(r.d>mx)mx=r.d}));mx=Math.ceil(mx/10)*10;
+ const X=t=>px+(w-px-10)*t/(TICKS-1),Y=v=>h-pb-(h-pb-py)*v/mx;g.strokeStyle=cl("--bd");g.fillStyle=cl("--mu");
+ for(let i=0;i<=4;i++){const v=mx*i/4;g.beginPath();g.moveTo(px,Y(v));g.lineTo(w-10,Y(v));g.stroke();g.fillText(v.toFixed(0),6,Y(v)+4)}for(let t=0;t<TICKS;t+=10)g.fillText(t,X(t)-4,h-7);
+ g.setLineDash([5,5]);S.ev.forEach(e=>{g.strokeStyle=e.k=="r"||(e.k=="u"&&e.v<.1)?cl("--ok"):cl("--no");g.beginPath();g.moveTo(X(e.t),py);g.lineTo(X(e.t),h-pb);g.stroke()});g.setLineDash([]);
+ ns.forEach((n,i)=>{g.strokeStyle=cl(CV[n]);g.lineWidth=ns.length>1&&n=="aqls"?3.5:ns.length>1?2.2:3.5;g.lineJoin="round";g.beginPath();let pen=0;const off=ns.length>1?(n=="rip"?-2:n=="ospf"?2:0):0;
+  P[n].rec.forEach(r=>{if(r.d==null){pen=0;return}pen?g.lineTo(X(r.t),Y(r.d)+off):g.moveTo(X(r.t),Y(r.d)+off);pen=1});g.stroke();g.fillStyle=cl(CV[n]);g.fillText("■ "+PN[n],px+10+i*80,py)});g.lineWidth=1}
+function test(keep){const a=H($("hs").value),b=H($("hd").value),[ok,why]=acl(a,b);$("res").dataset.on=1;
+ document.querySelectorAll(".mx td").forEach(t=>t.classList.toggle("s",t.dataset.a==a.vn&&t.dataset.b==b.vn));
+ let h=`<div class="v ${ok?"ok":"no"}">${ok?"✓ ALLOWED":"✕ BLOCKED"} · ${a.n} (${a.vn}) → ${b.n} (${b.vn})<small>${why}</small></div>`;
+ if(!ok)h+=`<p class="mu">Dropped at the source switch. Routing never sees this flow. RIP or OSPF alone would have delivered it.</p>`;
+ else{const c=klass(a,b),rc=c=="fixed"?"best_effort":c;h+=`<p class="mu">Class: <b style="color:var(--tx)">${c}</b>${c=="fixed"?" · internet breakout, AQ-LS not applied":""}</p>`;
+  if(a.s==b.s)h+=`<p>Same site · stays local · 0 ms</p>`;else{h+=`<table class="t"><tr><th>Protocol</th><th>Path right now</th><th>Delay</th></tr>`;["rip","ospf","aqls"].forEach(n=>{const r=route(P[n],a.s,b.s,rc,false);h+=`<tr><td style="color:var(${CV[n]});font-weight:700">${PN[n]}</td><td>${r.p?r.p.join("→"):"—"}</td><td>${r.p?dly(P[n],r.p).toFixed(1)+" ms":"—"}</td></tr>`});h+="</table>"}
+  if(!keep&&view!="cmp"){const r=route(P[view],a.s,b.s,rc,false);if(r.p)probe={pts:[hc(a.n),SW(a.s),...r.p.map(s=>PO[s]),SW(b.s),hc(b.n)],t0:performance.now(),ok:1}}}
+ if(!ok&&!keep&&view!="cmp")probe={pts:[hc(a.n),SW(a.s)],t0:performance.now(),ok:0};
+ $("res").innerHTML=h}
+function frame(now){const g=$("pk");if(g){let h="";const Q=P[view];
+ if(Q&&Q.pts&&view!="cmp"){const pts=Q.pts,seg=[];let L=0;for(let i=1;i<pts.length;i++){const d=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);seg.push(d);L+=d}
+  for(let k=0;k<9;k++){let d=((now/2600+k/9)%1)*L,i=0;while(i<seg.length-1&&d>seg[i]){d-=seg[i];i++}const f=d/seg[i];h+=`<circle cx="${(pts[i][0]+(pts[i+1][0]-pts[i][0])*f).toFixed(1)}" cy="${(pts[i][1]+(pts[i+1][1]-pts[i][1])*f).toFixed(1)}" r="4" fill="var(${CV[view]})"/>`}}
+ const pr=$("pr");pr.textContent="";
+ if(probe){const el=(now-probe.t0)/1800,pts=probe.pts,seg=[];let L=0;for(let i=1;i<pts.length;i++){const d=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);seg.push(d);L+=d}
+  if(el>=1.6)probe=null;else{let d=Math.min(el,1)*L,i=0;while(i<seg.length-1&&d>seg[i]){d-=seg[i];i++}const f=d/seg[i],x=pts[i][0]+(pts[i+1][0]-pts[i][0])*f,y=pts[i][1]+(pts[i+1][1]-pts[i][1])*f;
+   h+=`<circle cx="${x}" cy="${y}" r="8" fill="${probe.ok?"var(--acc)":"var(--no)"}" stroke="#fff" stroke-width="2"/>`;if(!probe.ok&&el>=1){pr.setAttribute("x",x);pr.setAttribute("y",y-16);pr.textContent="✕ BLOCKED by ACL"}}}
+ g.innerHTML=h}requestAnimationFrame(frame)}
+$("play").onclick=play;$("step").onclick=()=>{stop();step()};$("rst").onclick=()=>reset();$("sk").oninput=e=>reset(+e.target.value);$("spd").onchange=()=>{if(timer){stop();play()}};
+$("cs").innerHTML=$("cd").innerHTML=$("hs").innerHTML=$("hd").innerHTML=HOSTS.map(o=>`<option>${o.n}</option>`).join("");$("cs").value="SRV-DB01";$("cd").value="DR-SRV01";$("cl").innerHTML=LK.map(l=>`<option value="${l[0]}-${l[1]}">${l[0]}–${l[1]}</option>`).join("");$("cl").value="HQ-DR";["cs","cd","cc","cm","cl","cp","c1","c2"].forEach(i=>$(i).onchange=()=>{if(SC[cur].custom)reset()});$("hs").value="GUEST-AP";$("hd").value="FIN-PC-01";$("send").onclick=()=>test();
+build();reset();requestAnimationFrame(frame);
+</script></body></html>
